@@ -1,0 +1,15 @@
+[package]
+name = "gm_microoptimisation_war_crime"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+panic = "abort"
+
+[dependencies]
+gmod = "10.2.2"
+magic_static = "3.0.1"
+pcre2 = "0.2.3"
