@@ -8,7 +8,7 @@ The module does not replace these in comments or strings and does not change the
 
 # Explanation
 
-In Garry's Mod there are two runtime realms, the server realm and the client realm. Because Lua doesn't have conditional compilation, developers have to use an if expression to determine whether the script is running on the server or the client:
+In Garry's Mod there are two runtime realms, the server realm and the client realm. Because Lua doesn't have conditional compilation, developers have to use an if statement to determine whether the script is running on the server or the client:
 
 ```lua
 if SERVER then
