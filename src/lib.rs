@@ -25,6 +25,12 @@ mod tests;
 
 #[no_mangle]
 pub unsafe extern "C" fn CreateInterface() -> *mut std::ffi::c_void {
+	extern "C" fn after_init(lua: *mut std::ffi::c_void, _: *mut std::ffi::c_void) {
+		unsafe {
+			enums::clean_up_global_table(gmod::lua::State(lua));
+		}
+	}
+
 	extern "C" fn before_init(_: *mut std::ffi::c_void, lua: *mut std::ffi::c_void) {
 		unsafe {
 			realms::detect(lua);
@@ -42,6 +48,7 @@ pub unsafe extern "C" fn CreateInterface() -> *mut std::ffi::c_void {
     gmserverplugin::init();
     gmserverplugin::newstate(newstate);
     gmserverplugin::before_init(before_init);
+    gmserverplugin::after_init(after_init);
 
 	cxx::bridge::CreateInterface() as *mut _
 }

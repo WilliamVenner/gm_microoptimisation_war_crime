@@ -147,6 +147,18 @@ pub(crate) fn optimise(src: &mut [u8], strip_tree: &StripTree) {
 	});
 }
 
+pub unsafe fn clean_up_global_table(lua: gmod::lua::State) {
+	LUA_ENUMS.with(|enums| {
+		lua.push_globals();
+		for lua_enum in enums.borrow().iter() {
+			lua.push_binary_string(lua_enum.key.as_ref());
+			lua.push_nil();
+			lua.set_table(-3);
+		}
+		lua.pop();
+	});
+}
+
 #[cfg(test)]
 pub fn test_data() {
 	LUA_ENUMS.with(|enums| {
