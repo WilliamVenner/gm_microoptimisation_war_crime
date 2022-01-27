@@ -1,6 +1,6 @@
 [package]
 name = "gm_microoptimisation_war_crime"
-version = "0.1.0"
+version = "2.0.0"
 edition = "2021"
 
 [lib]
@@ -10,6 +10,12 @@ crate-type = ["cdylib", "rlib"]
 panic = "abort"
 
 [dependencies]
-gmod = { version = "12.0.1", features = ["server-plugin"] }
+#gmod = "12.0.1"
 magic_static = "3.0.1"
 pcre2 = "0.2.3"
+cxx = "1.0.63"
+gmod = { path = "D:\\gmod-rs\\gmod" }
+gmserverplugin = { path = "C:\\Users\\William\\Documents\\GitHub\\gmserverplugin\\gmserverplugin" }
+
+[build-dependencies]
+cxx-build = "1.0.63"

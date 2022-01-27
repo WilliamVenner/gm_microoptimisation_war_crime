@@ -1,24 +1,72 @@
 #![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
+#![allow(unused_unsafe)]
 
 use std::{ffi::{c_void, CStr}, os::raw::c_char, cell::RefCell};
+use crate::*;
 
 pub struct Detours {
-	RunStringEx: gmod::detour::GenericDetour<RunStringEx>
+	RunStringEx: gmod::detour::GenericDetour<RunStringEx>,
+	CLuaEnums_InitLibraries: gmod::detour::GenericDetour<CLuaEnums_InitLibraries>,
+	CGameLuaEnums_InitLibraries: gmod::detour::GenericDetour<CGameLuaEnums_InitLibraries>,
 }
 
 thread_local! {
 	static DETOURS: RefCell<Option<Detours>> = RefCell::new(None);
 }
 
+unsafe fn get_lua_state(iluainterface: *mut c_void) -> gmod::lua::State {
+	let ptr = *((iluainterface as *mut u8).add(std::mem::size_of::<usize>()) as *mut *mut c_void);
+	gmod::lua::State(ptr)
+}
+
+#[cfg_attr(all(target_os = "windows", target_pointer_width = "64"), abi("fastcall"))]
+#[cfg_attr(all(target_os = "windows", target_pointer_width = "32"), abi("stdcall"))]
+#[type_alias(CLuaEnums_InitLibraries)]
+extern "cdecl" fn CLuaEnums_InitLibraries_Detour(this: *mut c_void, lua_interface: *mut c_void) {
+	unsafe {
+		crate::enums::collect(
+			get_lua_state(lua_interface),
+			|| DETOURS.with(move |detour| unsafe {
+				detour.borrow().as_ref().unwrap().CLuaEnums_InitLibraries.call(this, lua_interface);
+			})
+		);
+	}
+}
+
+#[cfg_attr(all(target_os = "windows", target_pointer_width = "64"), abi("fastcall"))]
+#[cfg_attr(all(target_os = "windows", target_pointer_width = "32"), abi("stdcall"))]
+#[type_alias(CGameLuaEnums_InitLibraries)]
+extern "cdecl" fn CGameLuaEnums_InitLibraries_Detour(this: *mut c_void, lua_interface: *mut c_void) {
+	unsafe {
+		crate::enums::collect(
+			get_lua_state(lua_interface),
+			|| DETOURS.with(move |detour| unsafe {
+				detour.borrow().as_ref().unwrap().CGameLuaEnums_InitLibraries.call(this, lua_interface);
+			})
+		);
+	}
+}
+
 #[cfg_attr(all(target_os = "windows", target_pointer_width = "64"), abi("fastcall"))]
 #[cfg_attr(all(target_os = "windows", target_pointer_width = "32"), abi("stdcall"))]
 #[type_alias(RunStringEx)]
 extern "cdecl" fn RunStringEx_Detour(this: *mut c_void, path: *const c_char, unk1: *const c_char, src: *const c_char, unk2: bool, unk3: bool, unk4: bool, unk5: bool) -> usize {
+	#[cfg(debug_assertions)]
+	let path_str = unsafe { CStr::from_ptr(path) }.to_bytes();
+
 	let src = unsafe { CStr::from_ptr(src) };
 
 	let mut src = src.to_bytes().to_vec();
-	crate::realms::optimise(crate::realms::realm(), &mut src);
+	let strip_tree = strip::generate(&src);
+	realms::optimise(crate::realms::realm(), &mut src, &strip_tree);
+	enums::optimise(&mut src, &strip_tree);
 	src.push(0);
+
+	#[cfg(debug_assertions)]
+	if path_str == b"gamemodes/base/gamemode/animations.lua" {
+		let _ = std::fs::write("gm_microoptimisation_war_crime.lua", &src);
+	}
 
 	let src = src.as_ptr() as *const c_char;
 
@@ -35,6 +83,8 @@ pub(super) unsafe fn init() {
 	DETOURS.with(|cell| {
 		let mut cell = cell.borrow_mut();
 		drop(cell.take());
+
+		let (_serverdll, _serverdllpath) = open_library_srv!("server").expect("Failed to find server.dll!");
 
 		cell.replace(Detours {
 			RunStringEx: {
@@ -59,7 +109,47 @@ pub(super) unsafe fn init() {
 				let detour = gmod::detour::GenericDetour::new::<RunStringEx>(RunStringEx, RunStringEx_Detour).expect("Failed to detour CLuaInterface::RunStringEx");
 				detour.enable().expect("Failed to enable CLuaInterface::RunStringEx detour");
 				detour
-			}
+			},
+
+			// BUTTON_CODE_INVALID
+			CLuaEnums_InitLibraries: {
+				let CLuaEnums_InitLibraries: CLuaEnums_InitLibraries = find_gmod_signature!((_serverdll, _serverdllpath) -> {
+
+					win64_x86_64: [@SIG = "48 8B C4 48 89 58 08 57 48 81 EC ? ? ? ? 0F 29 70 E8 48 8B CA 0F 29 78 D8 48 8B FA 44 0F 29 40 ? 44 0F 29 48 ? 44 0F 29 58 ? 44 0F 29 60 ? 44 0F 29 68 ? 48 8B 02 44 0F 29 74 24 ? 44 0F 29 7C 24 ? FF 90 ? ? ? ? F2 0F 10 35 ? ? ? ? 48 8D 15 ? ? ? ?"],
+					win32_x86_64: [@SIG = "00"],
+
+					linux64_x86_64: [@SIG = "00"],
+					linux32_x86_64: [@SIG = "00"],
+
+					win32: [@SIG = "00"],
+					linux32: [@SIG = "00"],
+
+				}).expect("Failed to find CLuaEnums::InitLibraries");
+
+				let detour = gmod::detour::GenericDetour::new::<CLuaEnums_InitLibraries>(CLuaEnums_InitLibraries, CLuaEnums_InitLibraries_Detour).expect("Failed to detour CLuaEnums::InitLibraries");
+				detour.enable().expect("Failed to enable CLuaEnums::InitLibraries detour");
+				detour
+			},
+
+			// BUTTON_CODE_INVALID
+			CGameLuaEnums_InitLibraries: {
+				let CGameLuaEnums_InitLibraries: CGameLuaEnums_InitLibraries = find_gmod_signature!((_serverdll, _serverdllpath) -> {
+
+					win64_x86_64: [@SIG = "48 8B C4 48 89 58 08 48 89 70 10 57 48 81 EC ? ? ? ? 0F 29 70 E8 48 8B CA 0F 29 78 D8 48 8B FA 44 0F 29 40 ? 44 0F 29 48 ? 44 0F 29 50 ? 44 0F 29 58 ? 44 0F 29 60 ? 48 8B 02 44 0F 29 6C 24 ? 44 0F 29 74 24 ? 44 0F 29 7C 24 ? FF 90 ? ? ? ? F2 0F 10 15 ? ? ? ?"],
+					win32_x86_64: [@SIG = "00"],
+
+					linux64_x86_64: [@SIG = "00"],
+					linux32_x86_64: [@SIG = "00"],
+
+					win32: [@SIG = "00"],
+					linux32: [@SIG = "00"],
+
+				}).expect("Failed to find CGameLuaEnums::InitLibraries");
+
+				let detour = gmod::detour::GenericDetour::new::<CGameLuaEnums_InitLibraries>(CGameLuaEnums_InitLibraries, CGameLuaEnums_InitLibraries_Detour).expect("Failed to detour CGameLuaEnums::InitLibraries");
+				detour.enable().expect("Failed to enable CGameLuaEnums::InitLibraries detour");
+				detour
+			},
 		});
 	});
 }

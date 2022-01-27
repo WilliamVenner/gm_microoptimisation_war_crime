@@ -1,0 +1,4 @@
+Plugin
+{
+	file "lua/bin/gm_microoptimisation_war_crime.so"
+}

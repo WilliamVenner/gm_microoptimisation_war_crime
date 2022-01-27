@@ -25,15 +25,19 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cfg_table"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49f3690291e34881a89ceb8e80802f1582f29b1361fd476eeefb4e89dd6a121e"
-
-[[package]]
-name = "cfg_table"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78518bef4e5cc70a69a0bd1905594f8033b2f7492c9d7c0f173208c0945c30a2"
+
+[[package]]
+name = "codespan-reporting"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3538270d33cc669650c4b093848450d380def10c331d38c768e34cac80576e6e"
+dependencies = [
+ "termcolor",
+ "unicode-width",
+]
 
 [[package]]
 name = "cstr"
@@ -51,6 +55,50 @@ version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccc0a48a9b826acdf4028595adc9db92caea352f7af011a3034acd172a52a0aa"
 dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "cxx"
+version = "1.0.63"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c949f4e2576a655698463c56dbc5c5ea4c00964becc9adb0458baa943e862a5b"
+dependencies = [
+ "cc",
+ "cxxbridge-flags",
+ "cxxbridge-macro",
+ "link-cplusplus",
+]
+
+[[package]]
+name = "cxx-build"
+version = "1.0.63"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "618f85c8f132bd8912aab124e15a38adc762bb7e3cef84524adde1692ef3e8bc"
+dependencies = [
+ "cc",
+ "codespan-reporting",
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "scratch",
+ "syn",
+]
+
+[[package]]
+name = "cxxbridge-flags"
+version = "1.0.63"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b44dad556b0c83d86676135d6c684bdc2b1b9a1188052dd1cb5998246163536"
+
+[[package]]
+name = "cxxbridge-macro"
+version = "1.0.63"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2acc9305a8b69bc2308c2e17dbb98debeac984cdc89ac550c01507cc129433c3"
+dependencies = [
+ "proc-macro2",
  "quote",
  "syn",
 ]
@@ -118,31 +166,14 @@ dependencies = [
 
 [[package]]
 name = "gm_microoptimisation_war_crime"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
- "gmod 12.0.1",
+ "cxx",
+ "cxx-build",
+ "gmod 14.0.0",
+ "gmserverplugin",
  "magic_static",
  "pcre2",
-]
-
-[[package]]
-name = "gmod"
-version = "8.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "715c1eec3ce86b2871086e9577f6e6a68ea1e58a188422826d50d18f3d15d0e4"
-dependencies = [
- "cfg_table 0.1.1",
- "cstr",
- "ctor",
- "detour",
- "fn_abi",
- "fn_has_this",
- "fn_type_alias",
- "gmod-macros 1.0.3",
- "lazy_static",
- "libloading",
- "null_fn",
- "skidscan",
 ]
 
 [[package]]
@@ -151,7 +182,25 @@ version = "12.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3573d8d390480fc201b868996f348812fda75351ffd12efc140a1df3459a944"
 dependencies = [
- "cfg_table 1.0.0",
+ "cfg_table",
+ "cstr",
+ "ctor",
+ "detour",
+ "fn_abi",
+ "fn_has_this",
+ "fn_type_alias",
+ "gmod-macros 2.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static",
+ "libloading",
+ "null_fn",
+ "skidscan",
+]
+
+[[package]]
+name = "gmod"
+version = "14.0.0"
+dependencies = [
+ "cfg_table",
  "cstr",
  "ctor",
  "detour",
@@ -159,7 +208,6 @@ dependencies = [
  "fn_has_this",
  "fn_type_alias",
  "gmod-macros 2.0.1",
- "gmserverplugin",
  "lazy_static",
  "libloading",
  "null_fn",
@@ -168,9 +216,7 @@ dependencies = [
 
 [[package]]
 name = "gmod-macros"
-version = "1.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b98edb384e385384868fbede7d68accdf31654009fa23ed4abfa1dc5860e148"
+version = "2.0.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -190,11 +236,9 @@ dependencies = [
 
 [[package]]
 name = "gmserverplugin"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "481dc5ce867d0ac9c140b3c900e97ff532436045f3d29c8e5d51e8df3b64b336"
+version = "2.0.0"
 dependencies = [
- "gmod 8.0.0",
+ "gmod 12.0.1",
 ]
 
 [[package]]
@@ -246,6 +290,15 @@ checksum = "139bbf9ddb1bfc90c1ac64dd2923d9c957cd433cee7315c018125d72ab08a6b0"
 dependencies = [
  "cc",
  "libc",
+]
+
+[[package]]
+name = "link-cplusplus"
+version = "1.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8cae2cd7ba2f3f63938b9c724475dfb7b9861b545a90324476324ed21dbc8c8"
+dependencies = [
+ "cc",
 ]
 
 [[package]]
@@ -383,6 +436,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "scratch"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96311ef4a16462c757bb6a39152c40f58f31cd2602a40fceb937e2bc34e6cbab"
+
+[[package]]
 name = "serde"
 version = "1.0.133"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -433,6 +492,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "134b985708d02b2569ab2b9e27c8758ca4baaaf725341a572d59bc2d174b9bb5"
 
 [[package]]
+name = "termcolor"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2dfed899f0eb03f32ee8c6a0aabdb8a7949659e3466561fc0adf54e26d88c5f4"
+dependencies = [
+ "winapi-util",
+]
+
+[[package]]
 name = "thiserror"
 version = "1.0.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -477,6 +545,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dcf81ac59edc17cc8697ff311e8f5ef2d99fcbd9817b34cec66f90b6c3dfd987"
 
 [[package]]
+name = "unicode-width"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ed742d4ea2bd1176e236172c8429aaf54486e7ac098db29ffe6529e0ce50973"
+
+[[package]]
 name = "unicode-xid"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -515,6 +589,15 @@ name = "winapi-i686-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6"
+
+[[package]]
+name = "winapi-util"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70ec6ce85bb158151cae5e5c87f95a8e97d2c0c4b001223f33a334e3ce5de178"
+dependencies = [
+ "winapi 0.3.9",
+]
 
 [[package]]
 name = "winapi-x86_64-pc-windows-gnu"
