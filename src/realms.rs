@@ -1,8 +1,24 @@
-use crate::strip::StripTree;
+
+use crate::{strip::{StripTree, self}};
 
 magic_statics_mod! {
 	static ref RE_SERVER: crate::Regex = crate::Regex::new(r#"\bSERVER\b"#).unwrap();
 	static ref RE_CLIENT: crate::Regex = crate::Regex::new(r#"\bCLIENT\b"#).unwrap();
+}
+
+static mut REALM: Realm = Realm::Unknown;
+
+#[inline]
+pub fn realm() -> Realm {
+	unsafe { REALM }
+}
+
+#[repr(u8)]
+#[derive(Clone, Copy, Debug)]
+pub enum Realm {
+	Unknown,
+	Server,
+	Client
 }
 
 #[inline]
@@ -28,4 +44,23 @@ pub(crate) fn optimise_client(src: &mut [u8], strip_tree: &StripTree) {
 	let copy = src.to_vec();
 	replace(RE_SERVER.find_iter(&copy), strip_tree, src, b"false ");
 	replace(RE_CLIENT.find_iter(&copy), strip_tree, src, b"true  ");
+}
+
+pub fn optimise(realm: Realm, src: &mut [u8]) {
+	let strip_tree = strip::generate(src);
+	match realm {
+		Realm::Server => optimise_server(src, &strip_tree),
+		Realm::Client => optimise_client(src, &strip_tree),
+		_ => unreachable!()
+	}
+}
+
+pub(super) unsafe fn detect(lua: gmod::lua::State) {
+	if lua.is_server() {
+		REALM = Realm::Server;
+	} else if lua.is_client() {
+		REALM = Realm::Client;
+	} else {
+		panic!("Couldn't detect whether this is a server or a client");
+	}
 }

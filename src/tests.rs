@@ -12,7 +12,7 @@ macro_rules! generate {
 				#[test]
 				fn $sv_name() {
 					let mut src = $sv_from.trim().as_bytes().to_vec();
-					crate::optimise(crate::Realm::Server, &mut src);
+					crate::realms::optimise(crate::realms::Realm::Server, &mut src);
 
 					let a = String::from_utf8_lossy(&src);
 					let b = $sv_to.trim();
@@ -27,7 +27,7 @@ macro_rules! generate {
 				#[test]
 				fn $cl_name() {
 					let mut src = $cl_from.trim().as_bytes().to_vec();
-					crate::optimise(crate::Realm::Client, &mut src);
+					crate::realms::optimise(crate::realms::Realm::Client, &mut src);
 
 					let a = String::from_utf8_lossy(&src);
 					let b = $cl_to.trim();
